@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.AnchorPane?>
+
+<AnchorPane prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="Ui.CreatAccountController">
+   <children>
+      <TextField fx:id="userNameTextBox" layoutX="200.0" layoutY="150.0" />
+      <TextField fx:id="passwordTextBox" layoutX="199.0" layoutY="188.0" />
+      <Label fx:id="creatAccountLabel" layoutX="82.0" layoutY="104.0" prefHeight="17.0" prefWidth="107.0" text="Create Account" />
+      <Label fx:id="labelEmail" layoutX="82.0" layoutY="154.0" prefHeight="17.0" prefWidth="78.0" text="E-mail" />
+      <Label fx:id="labelPassword" layoutX="76.0" layoutY="192.0" prefHeight="17.0" prefWidth="78.0" text="Password" />
+      <Button fx:id="creatAccount" layoutX="199.0" layoutY="266.0" mnemonicParsing="false" onAction="#creatAccount" prefHeight="25.0" prefWidth="149.0" text=" Create account" />
+      <TextField fx:id="rePasswordTextBox" layoutX="199.0" layoutY="222.0" />
+      <Label fx:id="labelRePassword" layoutX="76.0" layoutY="226.0" prefHeight="17.0" prefWidth="107.0" text="Repeat password" />
+   </children>
+</AnchorPane>

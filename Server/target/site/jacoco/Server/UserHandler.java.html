@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>UserHandler.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Server</a> &gt; <a href="index.source.html" class="el_package">Server</a> &gt; <span class="el_source">UserHandler.java</span></div><h1>UserHandler.java</h1><pre class="source lang-java linenums">package Server;
+
+import share.UserData;
+
+import javax.websocket.Session;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
+<span class="fc" id="L10">public class UserHandler {</span>
+<span class="fc" id="L11">    private static List&lt;User&gt; onlineUsers = new ArrayList&lt;&gt;();</span>
+    private Communicator communicator;
+
+
+
+    public void addUserToOnlineList(UserData userData, Session session) throws IOException {
+<span class="nc" id="L17">        communicator = CommunicatorServerWebSocket.getInstance();</span>
+<span class="nc" id="L18">        onlineUsers.add(new User (userData.getUserId(),userData.getName(),session));</span>
+<span class="nc" id="L19">        communicator.notifyAllOnlineUser(getOnlineUsers());</span>
+<span class="nc" id="L20">    }</span>
+
+    public List&lt;User&gt; getOnlineUsers() {
+<span class="nc" id="L23">        return onlineUsers;</span>
+    }
+
+    public void setOnlineUsers(List&lt;User&gt; onlineUsers) {
+<span class="nc" id="L27">        this.onlineUsers = onlineUsers;</span>
+<span class="nc" id="L28">    }</span>
+
+    public User checkIfOnlineUser(User user){
+
+<span class="nc bnc" id="L32" title="All 2 branches missed.">        for (User u:onlineUsers</span>
+             ) {
+<span class="nc bnc" id="L34" title="All 2 branches missed.">            if (u.getUserNumber() == user.getUserNumber()){</span>
+<span class="nc" id="L35">                user = u ;</span>
+<span class="nc" id="L36">                return user;</span>
+            }
+<span class="nc" id="L38">        }</span>
+
+<span class="nc" id="L40">        return new User(-1);</span>
+    }
+
+    public Session getSessionOfUser(int userId){
+<span class="nc" id="L44">        Session session = null;</span>
+<span class="nc bnc" id="L45" title="All 2 branches missed.">        for (User u:onlineUsers) {</span>
+<span class="nc bnc" id="L46" title="All 2 branches missed.">            if(u.getUserNumber() == userId){</span>
+<span class="nc" id="L47">                session =u.getSession();</span>
+<span class="nc" id="L48">                return session ;</span>
+
+            }
+
+<span class="nc" id="L52">        }</span>
+<span class="nc" id="L53">        return session;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.5.201910111838</span></div></body></html>

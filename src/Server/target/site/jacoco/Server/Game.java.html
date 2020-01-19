@@ -1,0 +1,312 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Game.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Server</a> &gt; <a href="index.source.html" class="el_package">Server</a> &gt; <span class="el_source">Game.java</span></div><h1>Game.java</h1><pre class="source lang-java linenums">package Server;
+
+import share.CommunicatorWebSocketMessageOperation;
+import share.RequestData;
+import share.RequestStatus;
+
+import javax.websocket.Session;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
+
+public class Game {
+
+    private int gameId;
+
+<span class="pc" id="L18">   private   List&lt;Player&gt; players = new ArrayList&lt;&gt;();</span>
+<span class="pc" id="L19">   private   List&lt;RequestData&gt; requestDataList = new ArrayList&lt;&gt;();</span>
+<span class="pc" id="L20">   private   List&lt;Question&gt; questionList = new ArrayList&lt;&gt;();</span>
+   private int time;
+   private Communicator communicator;
+<span class="fc" id="L23">   private static UserHandler userHandler = new UserHandler();</span>
+<span class="pc" id="L24">   private Set set = new Set();</span>
+<span class="pc" id="L25">   private  Timer timer = new Timer();</span>
+
+
+
+    public void setUpGame(Player player){
+<span class="fc" id="L30">            players.add(player);</span>
+
+<span class="fc" id="L32">    }</span>
+
+<span class="nc" id="L34">    public Game (int gameId){</span>
+<span class="nc" id="L35">        this.gameId = gameId;</span>
+<span class="nc" id="L36">}</span>
+<span class="fc" id="L37">    public Game ( ){</span>
+<span class="fc" id="L38">    }</span>
+    public int getGameId() {
+<span class="fc" id="L40">        return gameId;</span>
+    }
+
+    public void setGameId(int gameId) {
+<span class="fc" id="L44">        this.gameId= gameId ;</span>
+<span class="fc" id="L45">    }</span>
+
+    public List&lt;Player&gt; getPlayers(){
+<span class="fc" id="L48">        return players;</span>
+    }
+
+    public void addPlayer(Player player) throws IOException {
+<span class="pc bpc" id="L52" title="1 of 2 branches missed.">        if(checkPlayersNumber()){</span>
+<span class="fc" id="L53">            players.add(player);</span>
+<span class="fc bfc" id="L54" title="All 2 branches covered.">            if(players.size() == 2){ // 4</span>
+<span class="fc" id="L55">                startGame();</span>
+            }
+        }else {
+            // do thing...
+        }
+<span class="fc" id="L60">    }</span>
+
+    public boolean checkPlayersNumber(){
+<span class="pc bpc" id="L63" title="1 of 2 branches missed.">        if(players.size() &lt; 4){</span>
+<span class="fc" id="L64">            return true;</span>
+        }else {
+<span class="nc" id="L66">            return false;</span>
+        }
+    }
+
+    public int addRequest(RequestData requestData){
+        try {
+            int requestId;
+            //   if(requestDataList.size() &lt;= 4){   // think about it
+<span class="nc" id="L74">            requestDataList.add(requestData);;</span>
+<span class="nc" id="L75">            requestData.setRequestId( requestId =requestDataList.size()+1);</span>
+<span class="nc" id="L76">            return requestId;</span>
+<span class="nc" id="L77">        }catch (Exception ex){</span>
+<span class="nc" id="L78">            System.out.println(ex);</span>
+<span class="nc" id="L79">            return -1;</span>
+
+        }
+
+
+
+    }
+
+    public void setTimerForRequest(RequestData requestData,Session session){
+<span class="nc" id="L88">        RequestData request = getRequest(requestData.getRequestId());</span>
+<span class="nc bnc" id="L89" title="All 2 branches missed.">        if(request.getRequestId()&gt;0){</span>
+<span class="nc" id="L90">            Timer timer = new Timer();</span>
+            TimerTask task;
+<span class="nc" id="L92">            timer.schedule(task= new TimerTask() {</span>
+
+
+
+                @Override
+                public void run() {
+<span class="nc" id="L98">                    RequestData request = getRequest(requestData.getRequestId());</span>
+<span class="nc bnc" id="L99" title="All 4 branches missed.">                    if (request.getRequestStatus() == RequestStatus.Accepted ||request.getRequestStatus() == RequestStatus.Rejected ){</span>
+<span class="nc" id="L100">                        timer.cancel();</span>
+<span class="nc" id="L101">                        time = 0;</span>
+                        try {
+<span class="nc bnc" id="L103" title="All 2 branches missed.">                            if(request.getRequestStatus() == RequestStatus.Accepted ){</span>
+<span class="nc" id="L104">                                addPlayer(new Player(requestData.getUserReceiver().getUserId(),requestData.getUserReceiver().getName(),session));</span>
+                            }
+<span class="nc" id="L106">                            sendRequestResponse(request);</span>
+
+<span class="nc" id="L108">                        } catch (IOException e) {</span>
+<span class="nc" id="L109">                            e.printStackTrace();</span>
+<span class="nc" id="L110">                        }</span>
+
+                    }
+<span class="nc bnc" id="L113" title="All 2 branches missed.">                    if(time == 30){</span>
+<span class="nc" id="L114">                        timer.cancel();</span>
+<span class="nc" id="L115">                        time = 0;</span>
+<span class="nc" id="L116">                        request.setRequestStatus(RequestStatus.cancel);</span>
+//                      send to sender...
+                        try {
+<span class="nc" id="L119">                            cancelRequest(request);</span>
+<span class="nc" id="L120">                        } catch (IOException e) {</span>
+<span class="nc" id="L121">                            e.printStackTrace();</span>
+<span class="nc" id="L122">                        }</span>
+                    }
+<span class="nc" id="L124">                }</span>
+            }, 1,1*1000);
+        }
+<span class="nc" id="L127">    }</span>
+
+    public void sendRequestResponse(RequestData requestData) throws IOException {
+<span class="nc bnc" id="L130" title="All 4 branches missed.">        if(userHandler.getSessionOfUser(requestData.getUserSender().getUserId()) != null &amp;&amp; userHandler.getSessionOfUser(requestData.getUserReceiver().getUserId())!= null){</span>
+<span class="nc" id="L131">            Session senderSession = userHandler.getSessionOfUser(requestData.getUserSender().getUserId());</span>
+<span class="nc" id="L132">            Session receiverSession = userHandler.getSessionOfUser(requestData.getUserReceiver().getUserId());</span>
+<span class="nc" id="L133">            communicator = CommunicatorServerWebSocket.getInstance();</span>
+<span class="nc" id="L134">            communicator.sendRequestResponse(requestData,senderSession,receiverSession);</span>
+
+
+        }else {
+            // Send error
+        }
+
+<span class="nc" id="L141">    }</span>
+
+    public void cancelRequest(RequestData requestData) throws IOException {
+<span class="nc bnc" id="L144" title="All 2 branches missed.">        if(userHandler.getSessionOfUser(requestData.getUserSender().getUserId()) != null){</span>
+<span class="nc" id="L145">            Session senderSession = userHandler.getSessionOfUser(requestData.getUserSender().getUserId());</span>
+<span class="nc" id="L146">            Session receiverSession = userHandler.getSessionOfUser(requestData.getUserReceiver().getUserId());</span>
+<span class="nc" id="L147">            communicator = CommunicatorServerWebSocket.getInstance();</span>
+<span class="nc" id="L148">            communicator.cancelRequest(requestData,senderSession,receiverSession);</span>
+        }else {
+            // Send error
+        }
+
+<span class="nc" id="L153">    }</span>
+
+    public RequestData getRequest(int requestId){
+<span class="nc bnc" id="L156" title="All 2 branches missed.">        for (RequestData request:requestDataList) {</span>
+<span class="nc bnc" id="L157" title="All 2 branches missed.">            if(request.getRequestId() == requestId){</span>
+<span class="nc" id="L158">                return request;</span>
+            }
+<span class="nc" id="L160">        }</span>
+<span class="nc" id="L161">        return new RequestData(-1);</span>
+    }
+
+    public void changeRequestStatus(int requestId,RequestStatus status){
+        try {
+
+<span class="nc" id="L167">            RequestData requestData = getRequest(requestId);</span>
+<span class="nc" id="L168">            requestData.setRequestStatus(status);</span>
+<span class="nc bnc" id="L169" title="All 2 branches missed.">            for (RequestData request: requestDataList) {</span>
+<span class="nc bnc" id="L170" title="All 2 branches missed.">                if(request.getRequestId() == requestData.getRequestId()){</span>
+<span class="nc" id="L171">                    request = requestData;</span>
+<span class="nc" id="L172">                    break;</span>
+                }
+<span class="nc" id="L174">            }</span>
+
+<span class="nc" id="L176">        }catch (Exception ex){</span>
+<span class="nc" id="L177">            System.out.println(ex);</span>
+<span class="nc" id="L178">        }</span>
+
+<span class="nc" id="L180">    }</span>
+
+    public void startGame() throws IOException {
+
+<span class="fc" id="L184">      set.setUpQuestions(this);</span>
+        TimerTask task;
+
+<span class="fc" id="L187">        timer.schedule(task= new GameHelper(this), 0,10*1000); // 5 second</span>
+
+
+<span class="fc" id="L190">    }</span>
+
+    public void addQuestion(Question question){
+<span class="fc" id="L193">        questionList.add(question);</span>
+<span class="fc" id="L194">    }</span>
+
+    public int getQuestionsListSize(){
+<span class="fc" id="L197">        return questionList.size();</span>
+    }
+
+    public void sendQuestionToPlayer(int questionNumber){
+
+<span class="nc" id="L202">       Question question =  questionList.get(questionNumber);</span>
+<span class="nc" id="L203">       question.setGameId(gameId);</span>
+<span class="nc" id="L204">        communicator = CommunicatorServerWebSocket.getInstance();</span>
+<span class="nc" id="L205">        communicator.sendQuestionToPlayers(question,players,CommunicatorWebSocketMessageOperation.GetQuestion);</span>
+
+<span class="nc" id="L207">    }</span>
+
+    public void sendToPlayersToStartTheGame(int questionNumber){
+<span class="fc" id="L210">        Question question =  questionList.get(questionNumber);</span>
+<span class="fc" id="L211">        question.setGameId(gameId);</span>
+<span class="nc" id="L212">        communicator = CommunicatorServerWebSocket.getInstance();</span>
+<span class="nc" id="L213">        communicator.sendQuestionToPlayers(question,players,CommunicatorWebSocketMessageOperation.StartGame);</span>
+<span class="nc" id="L214">    }</span>
+
+    public void gameIsFinish(){
+<span class="nc" id="L217">        timer.cancel();</span>
+<span class="nc" id="L218">        checkAnswerSetScore();</span>
+<span class="nc" id="L219">        setPlayersScore();</span>
+<span class="nc" id="L220">        sendScoreToUsers();</span>
+
+<span class="nc" id="L222">    }</span>
+
+    public void checkAnswerSetScore(){
+
+<span class="fc bfc" id="L226" title="All 2 branches covered.">        for (Question q:questionList) {</span>
+<span class="fc" id="L227">            int correctAnswerNumber = 0;</span>
+<span class="pc bpc" id="L228" title="1 of 2 branches missed.">            if (q.getEnteredAnswers() == null){</span>
+                // set score of players ZerO
+            }else {
+<span class="fc bfc" id="L231" title="All 2 branches covered.">                for (EnteredAnswer enteredAnswer : q.getEnteredAnswers()){</span>
+
+
+<span class="fc bfc" id="L234" title="All 2 branches covered.">                    if(enteredAnswer.getAnswerId()== q.getCorrectAnswer().getAnswerId()){</span>
+<span class="fc" id="L235">                        int indexnumber = q.getEnteredAnswers().indexOf(enteredAnswer);</span>
+<span class="fc bfc" id="L236" title="All 2 branches covered.">                        if(correctAnswerNumber == 0 ){</span>
+
+<span class="fc" id="L238">                            q.getEnteredAnswers().get(indexnumber).setAnswerScore(10);</span>
+<span class="fc" id="L239">                            correctAnswerNumber +=1;</span>
+
+<span class="fc bfc" id="L241" title="All 2 branches covered.">                        }else if(correctAnswerNumber == 1 ){</span>
+<span class="fc" id="L242">                            q.getEnteredAnswers().get(indexnumber).setAnswerScore(8);</span>
+<span class="fc" id="L243">                            correctAnswerNumber +=1;</span>
+
+<span class="fc bfc" id="L245" title="All 2 branches covered.">                        }else if(correctAnswerNumber == 2 ){</span>
+<span class="fc" id="L246">                            q.getEnteredAnswers().get(indexnumber).setAnswerScore(6);</span>
+<span class="fc" id="L247">                            correctAnswerNumber +=1;</span>
+
+<span class="pc bpc" id="L249" title="1 of 2 branches missed.">                        }else if(correctAnswerNumber == 3 ){</span>
+<span class="fc" id="L250">                            q.getEnteredAnswers().get(indexnumber).setAnswerScore(4);</span>
+<span class="fc" id="L251">                            correctAnswerNumber +=1;</span>
+
+                        }
+<span class="fc" id="L254">                    }else {</span>
+<span class="fc" id="L255">                        enteredAnswer.setAnswerScore(0);</span>
+                    }
+<span class="fc" id="L257">                }</span>
+            }
+<span class="fc" id="L259">        }</span>
+
+<span class="fc" id="L261">    }</span>
+
+    public void setPlayersScore(){
+<span class="fc bfc" id="L264" title="All 2 branches covered.">        for (Question question  :  questionList){</span>
+<span class="fc" id="L265">            List&lt;EnteredAnswer&gt; answerList = question.getEnteredAnswers();</span>
+<span class="fc bfc" id="L266" title="All 2 branches covered.">            for (Player player : players){</span>
+<span class="fc bfc" id="L267" title="All 2 branches covered.">                for (EnteredAnswer enteredAnswer : answerList){</span>
+<span class="fc bfc" id="L268" title="All 2 branches covered.">                     if (player.getPlayerNr() == enteredAnswer.getPlayerNumber()){</span>
+<span class="fc" id="L269">                         player.setScore(enteredAnswer.getAnswerScore());</span>
+                     }
+<span class="fc" id="L271">                }</span>
+<span class="fc" id="L272">            }</span>
+<span class="fc" id="L273">        }</span>
+        // 1- send the score to each user !! show the Result to user
+        // 2- setup the send question to user with changing in ui
+        //3- in client side send the answer to server
+
+<span class="fc" id="L278">    }</span>
+
+    public void sendScoreToUsers(){
+<span class="nc" id="L281">        communicator = CommunicatorServerWebSocket.getInstance();</span>
+<span class="nc" id="L282">        communicator.sendScoreToUsers(players);</span>
+
+
+<span class="nc" id="L285">    }</span>
+    public Question getQuestionId(int questionId){
+
+<span class="pc bpc" id="L288" title="1 of 2 branches missed.">        for (Question q:questionList) {</span>
+<span class="fc bfc" id="L289" title="All 2 branches covered.">            if(q.getQuestionId() == questionId){</span>
+<span class="fc" id="L290">                return q;</span>
+            }
+<span class="fc" id="L292">        }</span>
+<span class="nc" id="L293">        return new Question(-1);</span>
+    }
+
+    public void addEnteredAnswer(EnteredAnswer enteredAnswer){
+<span class="fc" id="L297">        Question question = getQuestionId(enteredAnswer.getQuestionId());</span>
+<span class="fc" id="L298">        int indexOfQuestion = questionList.indexOf(question);</span>
+    //     if(question.getQuestionId() &gt; 0){
+<span class="fc" id="L300">             questionList.get(indexOfQuestion).addEnteredAnswer(enteredAnswer);</span>
+      //   }else {
+             //Error
+       //  }
+<span class="fc" id="L304">    }</span>
+
+    public List&lt;Question&gt; getQuestionList(){
+<span class="nc" id="L307">        return questionList;</span>
+    }
+
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.5.201910111838</span></div></body></html>

@@ -1,0 +1,5 @@
+module Communicatorshared {
+
+
+    exports share;
+}

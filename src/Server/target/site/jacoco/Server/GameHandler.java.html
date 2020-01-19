@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>GameHandler.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Server</a> &gt; <a href="index.source.html" class="el_package">Server</a> &gt; <span class="el_source">GameHandler.java</span></div><h1>GameHandler.java</h1><pre class="source lang-java linenums">package Server;
+
+import javassist.compiler.ast.Pair;
+import share.*;
+
+import javax.websocket.Session;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+
+
+public class GameHandler {
+<span class="fc" id="L13">    private static ArrayList&lt;Game&gt; games = new ArrayList&lt;&gt;();</span>
+    private UserHandler userHandler;
+
+<span class="fc" id="L16">    public GameHandler(){</span>
+<span class="fc" id="L17">        userHandler = new UserHandler();</span>
+<span class="fc" id="L18">    }</span>
+
+    public GameData creatGame(PlayerData player,Session session){
+<span class="fc" id="L21">        Game game =new Game();</span>
+<span class="fc" id="L22">        game.setUpGame(new Player(player.getPlayerNumber(),player.getName(),session));</span>
+<span class="fc" id="L23">         games.add(game);</span>
+<span class="fc" id="L24">         game.setGameId(games.size()+1);</span>
+<span class="fc" id="L25">         return new GameData(game.getGameId());</span>
+
+    }
+
+    public  Map&lt;RequestData ,Session&gt;sendRequest(RequestData requestData) {
+        Game game;
+<span class="nc" id="L31">        Map&lt;RequestData, Session&gt; requestMap = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L32">         User receiver = userHandler.checkIfOnlineUser(new User(requestData.getUserReceiver().getUserId()));</span>
+<span class="nc bnc" id="L33" title="All 2 branches missed.">         if(receiver.getUserNumber()&gt; 0){</span>
+<span class="nc" id="L34">             requestData.setUserReceiver(new UserData(receiver.getUserNumber(),receiver.getName()));</span>
+<span class="nc" id="L35">             requestData.setRequestStatus(RequestStatus.Waiting);</span>
+<span class="nc" id="L36">             game = getGame(requestData.getGameId());</span>
+<span class="nc" id="L37">             game.addRequest(requestData);</span>
+<span class="nc" id="L38">             requestMap.put(requestData,receiver.getSession());</span>
+<span class="nc" id="L39">             return requestMap;</span>
+         }else {
+<span class="nc" id="L41">             return requestMap;</span>
+         }
+    }
+
+    public void requestIsSent(RequestData requestData,Session  session){
+<span class="nc" id="L46">        Game game = getGame(requestData.getGameId());</span>
+<span class="nc" id="L47">        game.setTimerForRequest(requestData,session);</span>
+<span class="nc" id="L48">    }</span>
+
+    public Game getGame(int gameId){
+
+<span class="pc bpc" id="L52" title="1 of 2 branches missed.">      for (Game g:games) {</span>
+<span class="fc bfc" id="L53" title="All 2 branches covered.">          if(g.getGameId() == gameId){</span>
+
+<span class="fc" id="L55">              return g;</span>
+
+          }
+<span class="fc" id="L58">      }</span>
+<span class="nc" id="L59">      return new Game(-1);</span>
+    }
+
+    public void requestResponse(RequestData requestData){
+<span class="nc" id="L63">        Game game = getGame(requestData.getGameId());</span>
+<span class="nc" id="L64">        game.changeRequestStatus(requestData.getRequestId(),requestData.getRequestStatus());</span>
+<span class="nc" id="L65">    }</span>
+
+    public void getPlayerAnswer(AnswerData answerData){
+<span class="fc" id="L68">       Game game = getGame(answerData.getGameId());</span>
+<span class="fc" id="L69">        int indexOfGame = games.indexOf(game);</span>
+<span class="fc" id="L70">        games.get(indexOfGame).addEnteredAnswer(new EnteredAnswer(answerData.getQuestionId(),answerData.getAnswerId(),answerData.getPlayerId()));</span>
+<span class="fc" id="L71">    }</span>
+
+    public void deleteGame(int gameId)
+    {
+<span class="fc" id="L75">        Game game = getGame(gameId);</span>
+<span class="fc" id="L76">        games.remove(game);</span>
+<span class="fc" id="L77">    }</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.5.201910111838</span></div></body></html>

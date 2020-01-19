@@ -1,0 +1,7 @@
+Server\CommunicatorServer.class
+Server\CommunicatorServerWebSocket$1.class
+Rest\RestStatus.class
+Server\CommunicatorServerWebSocket.class
+Rest\RestMessage.class
+Rest\Player.class
+Rest\SeaBattleRestClient.class

@@ -1,0 +1,8 @@
+-------------------------------------------------------------------------------
+Test set: Server.AccountHandlerTest
+-------------------------------------------------------------------------------
+Tests run: 1, Failures: 0, Errors: 1, Skipped: 0, Time elapsed: 0.203 s <<< FAILURE! - in Server.AccountHandlerTest
+login_checkIfRestReturnIdGreaterThen0_CorrectScoreIsSet  Time elapsed: 0.199 s  <<< ERROR!
+java.lang.NoSuchMethodError: share.UserData.<init>(Ljava/lang/String;Ljava/lang/String;)V
+	at Server.AccountHandlerTest.login_checkIfRestReturnIdGreaterThen0_CorrectScoreIsSet(AccountHandlerTest.java:22)
+

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.text.Font?>
+
+<AnchorPane prefHeight="602.0" prefWidth="996.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="Ui.LobbyController">
+   <children>
+      <AnchorPane fx:id="chatsMenuBox" layoutX="626.0" layoutY="142.0" prefHeight="496.0" prefWidth="364.0" style="-fx-background-color: white;">
+         <children>
+            <ScrollPane fx:id="scrol" layoutX="23.0" layoutY="83.0" prefHeight="393.0" prefWidth="327.0">
+               <content>
+                  <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="191.0" prefWidth="200.0" />
+               </content>
+            </ScrollPane>
+            <Button fx:id="chatsMenuCloseBtn" layoutX="25.0" layoutY="18.0" mnemonicParsing="false" onAction="#chatsMenusClose" prefHeight="51.0" prefWidth="327.0" style="-fx-background-color: white;" text="Online Users" textFill="#ffa600">
+               <font>
+                  <Font size="14.0" />
+               </font>
+            </Button>
+         </children>
+      </AnchorPane>
+      <Button fx:id="newGameBtn" layoutX="112.0" layoutY="182.0" mnemonicParsing="false" onAction="#startNewGame" prefHeight="77.0" prefWidth="351.0" text="New Game" />
+      <Button fx:id="joinGameBtn" layoutX="112.0" layoutY="298.0" mnemonicParsing="false" onAction="#joinGame" prefHeight="77.0" prefWidth="351.0" text="Join new game" />
+      <Button fx:id="logoutBtn" layoutX="885.0" layoutY="24.0" mnemonicParsing="false" onAction="#logout" prefHeight="40.0" prefWidth="97.0" text="Logout" />
+      <ListView fx:id="onlinelistlistview" layoutX="144.0" layoutY="32.0" prefHeight="137.0" prefWidth="274.0" />
+      <ListView fx:id="onlinelistlistview1" layoutX="352.0" layoutY="402.0" prefHeight="137.0" prefWidth="274.0" />
+      <Button fx:id="sendRequestBtn" layoutX="498.0" layoutY="86.0" mnemonicParsing="false" onAction="#sendRequest" prefHeight="30.0" prefWidth="97.0" text="send request" />
+   </children>
+</AnchorPane>

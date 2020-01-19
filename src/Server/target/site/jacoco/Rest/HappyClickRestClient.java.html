@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>HappyClickRestClient.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Server</a> &gt; <a href="index.source.html" class="el_package">rest</a> &gt; <span class="el_source">HappyClickRestClient.java</span></div><h1>HappyClickRestClient.java</h1><pre class="source lang-java linenums">package rest;
+
+import Server.User;
+import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
+import org.apache.http.HttpEntity;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.util.EntityUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.lang.reflect.Type;
+import com.google.gson.reflect.TypeToken;
+
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.util.List;
+
+<span class="nc" id="L24">public class HappyClickRestClient {</span>
+<span class="nc" id="L25">    private static final Gson gson = new Gson();</span>
+    private static final String url = &quot;http://localhost:7903&quot;;
+<span class="nc" id="L27">    private static final Logger logger = LoggerFactory.getLogger(HappyClickRestClient.class.getCanonicalName());</span>
+
+
+    public int newUser(String name, String password) throws Exception {
+<span class="nc" id="L31">        User newPlayer = new User(name, password);</span>
+<span class="nc" id="L32">        String target = &quot;/AccountsHandler/register&quot;;</span>
+<span class="nc" id="L33">        RestMessage response = executeQueryPost(newPlayer, target);</span>
+
+<span class="nc bnc" id="L35" title="All 2 branches missed.">        if (response.getStatus() == RestStatus.ERROR) {</span>
+
+<span class="nc" id="L37">            throw new Exception(response.getStatusMessage());</span>
+        }
+
+<span class="nc" id="L40">        User insertedPlayer = gson.fromJson(response.getData(), User.class);</span>
+<span class="nc" id="L41">        return insertedPlayer.getUserNumber();</span>
+
+    }
+    public User login(String name, String password) throws Exception {
+<span class="nc" id="L45">        User user = new User(name, password);</span>
+<span class="nc" id="L46">        String target = &quot;/AccountsHandler/login&quot;;</span>
+<span class="nc" id="L47">        RestMessage response = executeQueryPost(user, target);</span>
+
+<span class="nc bnc" id="L49" title="All 2 branches missed.">        if (response.getStatus() == RestStatus.ERROR) {</span>
+
+<span class="nc" id="L51">            throw new Exception(response.getStatusMessage());</span>
+        }
+
+<span class="nc" id="L54">        User insertedUser = gson.fromJson(response.getData(), User.class);</span>
+<span class="nc" id="L55">        return insertedUser;</span>
+
+    }
+
+    public List&lt;User&gt; getAllOnlineUsers() throws Exception {
+<span class="nc" id="L60">        String target = &quot;/users/online&quot;;</span>
+<span class="nc" id="L61">        RestMessage response = executeQueryPost2(target);</span>
+
+<span class="nc bnc" id="L63" title="All 2 branches missed.">        if (response.getStatus() == RestStatus.ERROR) {</span>
+
+<span class="nc" id="L65">            throw new Exception(response.getStatusMessage());</span>
+        }
+<span class="nc" id="L67">        Type listType = new TypeToken&lt;List&lt;User&gt;&gt;(){}.getType();</span>
+<span class="nc" id="L68">        List&lt;User&gt; onlineUsers = gson.fromJson(response.getData(),  listType);</span>
+<span class="nc" id="L69">        return onlineUsers;</span>
+
+    }
+    private RestMessage executeQueryPost(User seaBattleRequest, String queryPost) {
+<span class="nc" id="L73">        final String query = url + queryPost;</span>
+
+<span class="nc" id="L75">        HttpPost httpPost = new HttpPost(query);</span>
+<span class="nc" id="L76">        httpPost.addHeader(&quot;content-type&quot;, &quot;application/json&quot;);</span>
+        StringEntity params;
+        try {
+<span class="nc" id="L79">            params = new StringEntity(gson.toJson(seaBattleRequest));</span>
+<span class="nc" id="L80">            httpPost.setEntity(params);</span>
+<span class="nc" id="L81">        } catch (UnsupportedEncodingException ex) {</span>
+<span class="nc" id="L82">            return new RestMessage(RestStatus.ERROR, ex.getLocalizedMessage(), null);</span>
+<span class="nc" id="L83">        }</span>
+<span class="nc" id="L84">        return executeHttpUriRequest(httpPost);</span>
+    }
+
+    private RestMessage executeQueryPost2( String queryPost) {
+<span class="nc" id="L88">        final String query = url + queryPost;</span>
+
+<span class="nc" id="L90">        HttpPost httpPost = new HttpPost(query);</span>
+<span class="nc" id="L91">        httpPost.addHeader(&quot;content-type&quot;, &quot;application/json&quot;);</span>
+        StringEntity params;
+
+<span class="nc" id="L94">        return executeHttpUriRequest(httpPost);</span>
+    }
+
+    private RestMessage executeHttpUriRequest(HttpUriRequest httpUriRequest) {
+<span class="nc" id="L98">        CloseableHttpClient httpClient = HttpClients.createDefault();</span>
+
+        try {
+<span class="nc" id="L101">            CloseableHttpResponse response = httpClient.execute(httpUriRequest);</span>
+<span class="nc" id="L102">            HttpEntity entity = response.getEntity();</span>
+<span class="nc" id="L103">            String entityString = EntityUtils.toString(entity);</span>
+<span class="nc" id="L104">            return gson.fromJson(entityString, RestMessage.class);</span>
+<span class="nc" id="L105">        } catch (IOException | JsonSyntaxException e) {</span>
+<span class="nc" id="L106">            return new RestMessage(RestStatus.ERROR, e.getLocalizedMessage(), null);</span>
+        } finally {
+            try {
+<span class="nc" id="L109">                httpClient.close();</span>
+<span class="nc" id="L110">            } catch (IOException e) {</span>
+<span class="nc" id="L111">                return new RestMessage(RestStatus.ERROR, e.getLocalizedMessage(), null);</span>
+<span class="nc" id="L112">            }</span>
+        }
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.5.201910111838</span></div></body></html>

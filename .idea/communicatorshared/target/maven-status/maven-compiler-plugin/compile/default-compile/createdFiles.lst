@@ -1,0 +1,4 @@
+share\UserData.class
+share\CommunicatorWebSocketMessage.class
+share\CommunicatorWebSocketMessageOperation.class
+module-info.class

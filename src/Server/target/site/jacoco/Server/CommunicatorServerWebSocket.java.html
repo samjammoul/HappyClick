@@ -1,0 +1,426 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CommunicatorServerWebSocket.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Server</a> &gt; <a href="index.source.html" class="el_package">Server</a> &gt; <span class="el_source">CommunicatorServerWebSocket.java</span></div><h1>CommunicatorServerWebSocket.java</h1><pre class="source lang-java linenums">package Server;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import share.*;
+
+import javax.websocket.CloseReason;
+import javax.websocket.OnClose;
+import javax.websocket.OnError;
+import javax.websocket.OnMessage;
+import javax.websocket.OnOpen;
+import javax.websocket.Session;
+import javax.websocket.server.ServerEndpoint;
+
+import static share.CommunicatorWebSocketMessageOperation.*;
+
+
+@ServerEndpoint(value=&quot;/communicator/&quot;)
+<span class="fc" id="L25">public class CommunicatorServerWebSocket extends Communicator {</span>
+
+    // All sessions
+    // Singleton
+<span class="fc" id="L29">    private static CommunicatorServerWebSocket instance = null;</span>
+<span class="fc" id="L30">    private static final List&lt;Session&gt; sessions = new ArrayList&lt;&gt;();</span>
+  //  HappyClickRestClient happyClickRestClient = new HappyClickRestClient();
+<span class="fc" id="L32">    private  Gson gson   =  new GsonBuilder().setPrettyPrinting().create();</span>
+<span class="fc" id="L33">    final static UserHandler userHandler = new UserHandler();</span>
+<span class="fc" id="L34">    final static AccountHandler accountHandler = new AccountHandler(userHandler);</span>
+<span class="fc" id="L35">    final static GameHandler gameHandler = new GameHandler();</span>
+    private notifyAllOnlineUserThread notifyThread ;
+
+
+
+    // Map each property to list of sessions that are subscribed to that property
+  //  private static final Map&lt;String,List&lt;Session&gt;&gt; propertySessions = new HashMap&lt;&gt;();
+
+    public static CommunicatorServerWebSocket getInstance() {
+
+<span class="fc bfc" id="L45" title="All 2 branches covered.">        if (instance == null) {</span>
+<span class="fc" id="L46">            System.out.println(&quot;[WebSocket Client create singleton instance]&quot;);</span>
+<span class="fc" id="L47">            instance = new CommunicatorServerWebSocket();</span>
+        }
+<span class="fc" id="L49">        return instance;</span>
+    }
+
+    @OnOpen
+    public void onConnect(Session session) {
+<span class="nc" id="L54">        System.out.println(&quot;[WebSocket Connected] SessionID: &quot; + session.getId());</span>
+<span class="nc" id="L55">        String message = String.format(&quot;[New client with client side session ID]: %s&quot;, session.getId());</span>
+<span class="nc" id="L56">        sessions.add(session);</span>
+<span class="nc" id="L57">        System.out.println(&quot;[#sessions]: &quot; + sessions.size());</span>
+
+
+
+<span class="nc" id="L61">    }</span>
+
+    @OnMessage
+    public void onText(String message, Session session) throws Exception {
+<span class="nc" id="L65">        System.out.println(&quot;[WebSocket Session ID] : &quot; + session.getId() + &quot; [Received] : &quot; + message);</span>
+<span class="nc" id="L66">        CommunicatorWebSocketMessage websocketMessage = new Gson().fromJson(message, CommunicatorWebSocketMessage.class);</span>
+<span class="nc" id="L67">        handleMessageFromClient(websocketMessage, session);</span>
+       // CommunicatorWebSocketMessage websocketMessage = new Gson().fromJson(message, CommunicatorWebSocketMessage.class);
+
+
+       // websocketMessage.setProperty(CommunicatorWebSocketMessageOperation.REGISTERPROPERTY);
+      //  String jsonMessage = gson.toJson(message);
+  //      session.getBasicRemote().sendText(new Gson().toJson(msg));
+        //session.getAsyncRemote().sendText(new Gson().toJson(websocketMessage));
+<span class="nc" id="L75">    }</span>
+
+    @OnClose
+    public void onClose(CloseReason reason, Session session) {
+<span class="nc" id="L79">        System.out.println(&quot;[WebSocket Session ID] : &quot; + session.getId() + &quot; [Socket Closed]: &quot; + reason);</span>
+<span class="nc" id="L80">        sessions.remove(session);</span>
+<span class="nc" id="L81">    }</span>
+
+    @OnError
+    public void onError(Throwable cause, Session session) {
+<span class="nc" id="L85">        System.out.println(&quot;[WebSocket Session ID] : &quot; + session.getId() + &quot;[ERROR]: &quot;);</span>
+<span class="nc" id="L86">        cause.printStackTrace(System.err);</span>
+<span class="nc" id="L87">    }</span>
+
+    // Handle incoming message from client
+    private void handleMessageFromClient(CommunicatorWebSocketMessage websocketMessage, Session session) throws Exception {
+
+        // Operation defined in message
+        CommunicatorWebSocketMessageOperation operation;
+<span class="nc" id="L94">        operation = websocketMessage.getOperation();</span>
+
+        // Process message based on operation
+
+<span class="nc bnc" id="L98" title="All 7 branches missed.">            switch (operation) {</span>
+                case REGISTERPROPERTY:
+<span class="nc" id="L100">               onRegisterUserMessage(websocketMessage,session);</span>
+<span class="nc" id="L101">                    break;</span>
+
+                case logInProperty:
+<span class="nc" id="L104">                    onLogInMessage(websocketMessage,session);</span>
+<span class="nc" id="L105">                    break;</span>
+
+                case CreatGame:
+                    // Subsribe to property if the property has been registered
+<span class="nc" id="L109">                   onCreatGame(websocketMessage,session);</span>
+<span class="nc" id="L110">                    break;</span>
+
+                case SendRequest:
+<span class="nc" id="L113">                    onRequest(websocketMessage,session);</span>
+<span class="nc" id="L114">                    break;</span>
+                case RequestResponse:
+<span class="nc" id="L116">                    onRequestResponse(websocketMessage,session);</span>
+<span class="nc" id="L117">                    break;</span>
+                case EnteredAnswer:
+<span class="nc" id="L119">                    onGetAnswer(websocketMessage,session);</span>
+<span class="nc" id="L120">                    break;</span>
+                default:
+<span class="nc" id="L122">                    System.out.println(&quot;[WebSocket ERROR: cannot process Json message &quot; + websocketMessage);</span>
+                    break;
+            }
+<span class="nc" id="L125">        }</span>
+
+
+    private void onRegisterUserMessage(CommunicatorWebSocketMessage websocketMessage, Session session) throws Exception {
+
+        try {
+<span class="nc" id="L131">            UserData user = new Gson().fromJson(websocketMessage.getData(), UserData.class);</span>
+<span class="nc" id="L132">            UserData userResponse = accountHandler.registerUser(user,session);</span>
+<span class="nc bnc" id="L133" title="All 2 branches missed.">            if(userResponse.getUserId() &gt; 0){</span>
+
+
+<span class="nc" id="L136">                CommunicatorWebSocketMessage message = new CommunicatorWebSocketMessage();</span>
+<span class="nc" id="L137">                message.setOperation(CommunicatorWebSocketMessageOperation.RegisterSuccess);</span>
+<span class="nc" id="L138">                UserData userData = new UserData(userResponse.getUserId(),userResponse.getName());</span>
+                //  onlineUsers.add(new User(userId,user.getName(),session));
+
+<span class="nc" id="L141">                message.setData(new Gson().toJson(userData));</span>
+                // message.setData(new Gson().toJson(user));
+                //  String msg = gson.toJson(message);
+<span class="nc" id="L144">                session.getBasicRemote().sendText(new Gson().toJson(message));</span>
+<span class="nc" id="L145">            }else {</span>
+<span class="nc" id="L146">                CommunicatorWebSocketMessage message = new CommunicatorWebSocketMessage();</span>
+<span class="nc" id="L147">                message.setOperation(CommunicatorWebSocketMessageOperation.RegisterFailed);</span>
+                // message.setData(new Gson().toJson(user));
+                //  String msg = gson.toJson(message);
+<span class="nc" id="L150">                session.getBasicRemote().sendText(new Gson().toJson(message));</span>
+            }
+<span class="nc" id="L152">        } catch (Exception e) {</span>
+<span class="nc" id="L153">            CommunicatorWebSocketMessage msg = new CommunicatorWebSocketMessage();</span>
+<span class="nc" id="L154">            msg.setOperation(RegisterNotSuccess);</span>
+<span class="nc" id="L155">            session.getBasicRemote().sendText(new Gson().toJson(msg));</span>
+<span class="nc" id="L156">            return;</span>
+<span class="nc" id="L157">        }</span>
+
+
+
+
+        //  session.getAsyncRemote().sendText(new Gson().toJson(message));
+<span class="nc" id="L163">    }</span>
+
+    private void onLogInMessage(CommunicatorWebSocketMessage websocketMessage, Session session) throws IOException {
+
+        try {
+<span class="nc" id="L168">            UserData user = new Gson().fromJson(websocketMessage.getData(), UserData.class);</span>
+<span class="nc" id="L169">            UserData userResponse = accountHandler.login(user,session);</span>
+<span class="nc bnc" id="L170" title="All 2 branches missed.">            if(userResponse.getUserId() &gt; 0){</span>
+
+
+<span class="nc" id="L173">                CommunicatorWebSocketMessage message = new CommunicatorWebSocketMessage();</span>
+<span class="nc" id="L174">                message.setOperation(loginSuccess);</span>
+<span class="nc" id="L175">                UserData userData = new UserData(userResponse.getUserId(),userResponse.getName());</span>
+                //  onlineUsers.add(new User(userId,user.getName(),session));
+
+<span class="nc" id="L178">                message.setData(new Gson().toJson(userData));</span>
+                // message.setData(new Gson().toJson(user));
+                //  String msg = gson.toJson(message);
+<span class="nc" id="L181">                session.getBasicRemote().sendText(new Gson().toJson(message));</span>
+<span class="nc" id="L182">            }else {</span>
+<span class="nc" id="L183">                CommunicatorWebSocketMessage message = new CommunicatorWebSocketMessage();</span>
+<span class="nc" id="L184">                message.setOperation(logInNotSuccess);</span>
+                // message.setData(new Gson().toJson(user));
+                //  String msg = gson.toJson(message);
+<span class="nc" id="L187">                session.getBasicRemote().sendText(new Gson().toJson(message));</span>
+            }
+<span class="nc" id="L189">        } catch (Exception e) {</span>
+<span class="nc" id="L190">            CommunicatorWebSocketMessage msg = new CommunicatorWebSocketMessage();</span>
+<span class="nc" id="L191">            msg.setOperation(logInNotSuccess);</span>
+<span class="nc" id="L192">            session.getBasicRemote().sendText(new Gson().toJson(msg));</span>
+
+<span class="nc" id="L194">        }</span>
+
+
+
+<span class="nc" id="L198">    }</span>
+
+    private void onCreatGame(CommunicatorWebSocketMessage websocketMessage, Session session) throws Exception {
+
+<span class="nc" id="L202">        PlayerData player = new Gson().fromJson(websocketMessage.getData(), PlayerData.class);</span>
+
+        try {
+
+<span class="nc" id="L206">            GameData gameData = gameHandler.creatGame(player,session);</span>
+<span class="nc bnc" id="L207" title="All 2 branches missed.">            if(gameData.getGameId()&gt;0){</span>
+<span class="nc" id="L208">                CommunicatorWebSocketMessage message = new CommunicatorWebSocketMessage();</span>
+<span class="nc" id="L209">                message.setOperation(CreatGameSucess);</span>
+
+<span class="nc" id="L211">                message.setData(new Gson().toJson(gameData));</span>
+<span class="nc" id="L212">                session.getBasicRemote().sendText(new Gson().toJson(message));</span>
+<span class="nc" id="L213">            }else {</span>
+<span class="nc" id="L214">                CommunicatorWebSocketMessage msg = new CommunicatorWebSocketMessage();</span>
+<span class="nc" id="L215">                msg.setOperation(CreatGameNotSucess);</span>
+<span class="nc" id="L216">                session.getBasicRemote().sendText(new Gson().toJson(msg));</span>
+
+            }
+
+<span class="nc" id="L220">        } catch (Exception e) {</span>
+<span class="nc" id="L221">            CommunicatorWebSocketMessage msg = new CommunicatorWebSocketMessage();</span>
+<span class="nc" id="L222">            msg.setOperation(CreatGameNotSucess);</span>
+<span class="nc" id="L223">            session.getBasicRemote().sendText(new Gson().toJson(msg));</span>
+
+<span class="nc" id="L225">        }</span>
+
+
+
+<span class="nc" id="L229">    }</span>
+
+
+@Override
+    public  void notifyAllOnlineUser(List&lt;User&gt; onlineUsers) throws IOException {
+<span class="nc" id="L234">        List&lt;User&gt; users = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L235">        users.clear();</span>
+<span class="nc bnc" id="L236" title="All 2 branches missed.">        for (User u:onlineUsers</span>
+             ) {
+<span class="nc" id="L238">            users.add(new User(u.getUserNumber(),u.getName()));</span>
+<span class="nc" id="L239">        }</span>
+<span class="nc" id="L240">         System.out.println(&quot;++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++&quot;+  &quot; Start&quot; );</span>
+<span class="nc" id="L241">        CommunicatorWebSocketMessage msg = new CommunicatorWebSocketMessage();</span>
+<span class="nc" id="L242">        msg.setOperation(OnlineUsers);</span>
+<span class="nc" id="L243">        msg.setData(gson.toJson(users));</span>
+<span class="nc bnc" id="L244" title="All 2 branches missed.">        for (Session s:sessions) {</span>
+           // notifyThread = new notifyAllOnlineUserThread();
+          //  notifyThread.setSessionAndMsg(s,msg);
+           // notifyThread.start();
+<span class="nc" id="L248">            s.getBasicRemote().sendText(new Gson().toJson(msg));</span>
+<span class="nc" id="L249">        }</span>
+<span class="nc" id="L250">    }</span>
+
+    private void onRequest(CommunicatorWebSocketMessage websocketMessage, Session session) throws Exception {
+<span class="nc" id="L253">        User receiver = null;</span>
+<span class="nc" id="L254">        RequestData requestData = new Gson().fromJson(websocketMessage.getData(), RequestData.class);</span>
+
+        try {
+<span class="nc" id="L257">            Map&lt;RequestData,Session&gt; requestDataSessionMap = gameHandler.sendRequest(requestData);</span>
+<span class="nc bnc" id="L258" title="All 2 branches missed.">            if(requestDataSessionMap.isEmpty()){</span>
+<span class="nc" id="L259">                CommunicatorWebSocketMessage message = new CommunicatorWebSocketMessage();</span>
+<span class="nc" id="L260">                message.setOperation(SendRequestNotSucess);</span>
+<span class="nc" id="L261">                message.setData(new Gson().toJson(requestData));</span>
+<span class="nc" id="L262">                session.getBasicRemote().sendText(new Gson().toJson(message));</span>
+<span class="nc" id="L263">            }else {</span>
+<span class="nc bnc" id="L264" title="All 2 branches missed.">                for (Map.Entry&lt;RequestData,Session&gt; entry: requestDataSessionMap.entrySet()) {</span>
+<span class="nc" id="L265">                    requestData = entry.getKey();</span>
+<span class="nc" id="L266">                    receiver = new User(requestData.getUserReceiver().getUserId(),requestData.getUserReceiver().getName(),entry.getValue());</span>
+<span class="nc" id="L267">                    break;</span>
+                }
+
+<span class="nc" id="L270">                CommunicatorWebSocketMessage message = new CommunicatorWebSocketMessage();</span>
+<span class="nc" id="L271">                message.setOperation(GetRequest);</span>
+<span class="nc" id="L272">                message.setData(new Gson().toJson(requestData));</span>
+<span class="nc" id="L273">                receiver.getSession().getBasicRemote().sendText(new Gson().toJson(message));</span>
+
+<span class="nc" id="L275">                gameHandler.requestIsSent(requestData,receiver.getSession());</span>
+
+<span class="nc" id="L277">                CommunicatorWebSocketMessage message2 = new CommunicatorWebSocketMessage();</span>
+<span class="nc" id="L278">                message.setOperation(RequestIsSent);</span>
+<span class="nc" id="L279">                message.setData(new Gson().toJson(requestData));</span>
+<span class="nc" id="L280">                session.getBasicRemote().sendText(new Gson().toJson(message));</span>
+
+            }
+<span class="nc" id="L283">        } catch (Exception e) {</span>
+<span class="nc" id="L284">            CommunicatorWebSocketMessage msg = new CommunicatorWebSocketMessage();</span>
+<span class="nc" id="L285">            msg.setOperation(SendRequestNotSucess);</span>
+<span class="nc" id="L286">            session.getBasicRemote().sendText(new Gson().toJson(msg));</span>
+<span class="nc" id="L287">            return;</span>
+<span class="nc" id="L288">        }</span>
+
+
+
+
+<span class="nc" id="L293">    }</span>
+
+    private void onRequestResponse(CommunicatorWebSocketMessage websocketMessage, Session session) throws Exception {
+
+            try {
+<span class="nc" id="L298">                RequestData requestData = new Gson().fromJson(websocketMessage.getData(), RequestData.class);</span>
+<span class="nc bnc" id="L299" title="All 2 branches missed.">                switch (requestData.getRequestStatus()) {</span>
+                    case Rejected:
+                    case Accepted:
+
+<span class="nc" id="L303">                        gameHandler.requestResponse(requestData);</span>
+<span class="nc" id="L304">                      break;</span>
+                    default:
+<span class="nc" id="L306">                        System.out.println(&quot;[WebSocket ERROR || onRequestResponse: cannot process Json message &quot; + websocketMessage);</span>
+                        break;
+                }
+
+<span class="nc" id="L310">            } catch (Exception e) {</span>
+<span class="nc" id="L311">                System.out.println(&quot;[WebSocket ERROR || onRequestResponse || onRequestResponse: cannot process Json message &quot; + websocketMessage);</span>
+<span class="nc" id="L312">                return;</span>
+<span class="nc" id="L313">            }</span>
+<span class="nc" id="L314">    }</span>
+
+
+
+
+    public void sendRequestResponse(RequestData requestData,Session senderSession,Session receiverSession) throws IOException {
+<span class="nc" id="L320">        CommunicatorWebSocketMessage message = new CommunicatorWebSocketMessage();</span>
+<span class="nc bnc" id="L321" title="All 3 branches missed.">        switch (requestData.getRequestStatus()) {</span>
+            case Rejected:
+
+<span class="nc" id="L324">                message.setOperation(RequestRejected);</span>
+
+<span class="nc" id="L326">                break;</span>
+
+            case Accepted:
+
+<span class="nc" id="L330">                message.setOperation(RequestAccepted);</span>
+<span class="nc" id="L331">                sendInformationToRequestReceiver( requestData, receiverSession);</span>
+<span class="nc" id="L332">                break;</span>
+
+
+            default:
+<span class="nc" id="L336">                System.out.println(&quot;[WebSocket ERROR: cannot process Json message &quot; + &quot; || sendRequestResponse&quot;);</span>
+                break;
+        }
+<span class="nc" id="L339">        message.setData(new Gson().toJson(requestData));</span>
+<span class="nc" id="L340">        senderSession.getBasicRemote().sendText(new Gson().toJson(message));</span>
+<span class="nc" id="L341">    }</span>
+
+    public void sendInformationToRequestReceiver(RequestData requestData,Session receiverSession) throws IOException {
+<span class="nc" id="L344">        CommunicatorWebSocketMessage message = new CommunicatorWebSocketMessage();</span>
+<span class="nc" id="L345">        message.setOperation(GetGameInformation);</span>
+<span class="nc" id="L346">        message.setData(new Gson().toJson(requestData));</span>
+<span class="nc" id="L347">        receiverSession.getBasicRemote().sendText(new Gson().toJson(message));</span>
+<span class="nc" id="L348">    }</span>
+
+    public void cancelRequest(RequestData requestData, Session senderSession,Session receiverSession) throws IOException {
+<span class="nc" id="L351">        CommunicatorWebSocketMessage message = new CommunicatorWebSocketMessage();</span>
+<span class="nc" id="L352">        message.setOperation(RequestRejected);</span>
+<span class="nc" id="L353">        message.setData(new Gson().toJson(requestData));</span>
+<span class="nc" id="L354">        senderSession.getBasicRemote().sendText(new Gson().toJson(message));</span>
+
+<span class="nc" id="L356">        CommunicatorWebSocketMessage message2 = new CommunicatorWebSocketMessage();</span>
+<span class="nc" id="L357">        message.setOperation(RequestCancel);</span>
+<span class="nc" id="L358">        message.setData(new Gson().toJson(requestData));</span>
+<span class="nc" id="L359">        receiverSession.getBasicRemote().sendText(new Gson().toJson(message2));</span>
+<span class="nc" id="L360">    }</span>
+
+    public void sendQuestionToPlayers(Question question,List&lt;Player&gt; players,CommunicatorWebSocketMessageOperation communicatorWebSocketMessageOperation){
+        try {
+<span class="fc" id="L364">            List&lt;AnswerData&gt; answerDataList = new ArrayList&lt;&gt;();</span>
+<span class="fc bfc" id="L365" title="All 2 branches covered.">            for (Answer answer:question.getAnswers()) {</span>
+<span class="fc" id="L366">                answerDataList.add(new AnswerData(answer.getAnswerId(),answer.getAnswerText(),answer.getAnswerId()));</span>
+<span class="fc" id="L367">            }</span>
+<span class="fc" id="L368">            CommunicatorWebSocketMessage message = new CommunicatorWebSocketMessage();</span>
+<span class="fc" id="L369">            message.setOperation(communicatorWebSocketMessageOperation);</span>
+<span class="fc" id="L370">            QuestionData questionData = new QuestionData(question.getQuestionId(),question.getTextQuestion(),question.getPicName(),answerDataList,question.getGameId());</span>
+<span class="nc" id="L371">            message.setData(new Gson().toJson(questionData));</span>
+<span class="nc bnc" id="L372" title="All 2 branches missed.">            for (Player player : players) {</span>
+<span class="nc" id="L373">                player.getSession().getBasicRemote().sendText(new Gson().toJson(message));</span>
+<span class="nc" id="L374">            }</span>
+<span class="nc" id="L375">        }catch (Exception ex){</span>
+<span class="nc" id="L376">            System.out.println(ex);</span>
+<span class="nc" id="L377">        }</span>
+
+
+<span class="nc" id="L380">    }</span>
+
+    public void sendScoreToUsers(List&lt;Player&gt; players){
+        try {
+<span class="nc" id="L384">      List&lt;PlayerData&gt; scoreData = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L385" title="All 2 branches missed.">        for (Player player:players</span>
+             ) {
+<span class="nc" id="L387">            scoreData.add(new PlayerData(player.getPlayerNr(),player.getName(),player.getScore()));</span>
+<span class="nc" id="L388">        }</span>
+<span class="nc" id="L389">        CommunicatorWebSocketMessage message = new CommunicatorWebSocketMessage();</span>
+<span class="nc" id="L390">        message.setOperation(GetResult);</span>
+<span class="nc" id="L391">        message.setData(new Gson().toJson(scoreData));</span>
+<span class="nc bnc" id="L392" title="All 2 branches missed.">        for (Player player : players) {</span>
+<span class="nc" id="L393">            player.getSession().getBasicRemote().sendText(new Gson().toJson(message));</span>
+<span class="nc" id="L394">        }</span>
+<span class="nc" id="L395">    }catch (Exception ex){</span>
+<span class="nc" id="L396">        System.out.println(ex);</span>
+<span class="nc" id="L397">    }</span>
+<span class="nc" id="L398">    }</span>
+
+    public void  onGetAnswer(CommunicatorWebSocketMessage websocketMessage, Session session){
+    //    try {
+<span class="nc" id="L402">            AnswerData answerData = new Gson().fromJson(websocketMessage.getData(), AnswerData.class);</span>
+<span class="nc" id="L403">            gameHandler.getPlayerAnswer(answerData);</span>
+
+    //    }catch (Exception ex){
+       //     System.out.println(ex);
+    //   }
+
+<span class="nc" id="L409">    }</span>
+    @Override
+    public synchronized void sendUsers (Session session, CommunicatorWebSocketMessage communicatorWebSocketMessage) {
+        try {
+<span class="nc" id="L413">            session.getBasicRemote().sendText(new Gson().toJson(communicatorWebSocketMessage));</span>
+<span class="nc" id="L414">        }catch (Exception ex ){</span>
+
+<span class="nc" id="L416">        }</span>
+
+<span class="nc" id="L418">    }</span>
+
+
+}
+
+
+
+
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.5.201910111838</span></div></body></html>
